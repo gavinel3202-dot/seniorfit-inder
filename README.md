@@ -1,35 +1,97 @@
-# SeniorFit INDER v1.0
+# Senior Fitness Test INDER – Móvil + Nube
 
-Plataforma de Valoración Funcional para Personas Mayores, basada en Senior Fitness Test, consentimiento informado, cribado de seguridad, anamnesis, antropometría avanzada, motor de alertas y dashboard.
+Versión simplificada de la aplicación para trabajar desde **celular, tableta o computador**.
 
-## Ejecutar localmente
+## Arquitectura
 
-```bash
-npm install
-npm run dev
+**GitHub → Streamlit → Supabase**
+
+- **GitHub** guarda el código y permite actualizar la aplicación.
+- **Streamlit** publica la interfaz web responsive.
+- **Supabase/PostgreSQL** guarda cada registro nuevo y cada modificación en la nube.
+- Los datos de cada valoración se almacenan en una columna `JSONB`, lo que permite agregar
+  campos nuevos sin modificar la estructura principal de la base de datos.
+
+## Ventaja principal
+
+Los campos visibles se leen desde la tabla `campos`. Desde el menú **Campos** puede:
+
+- agregar campos;
+- cambiar su nombre visible;
+- hacerlos obligatorios u opcionales;
+- cambiar el orden;
+- activarlos o desactivarlos.
+
+Esto significa que muchos cambios de formulario **no requieren editar Python ni volver a crear la base de datos**.
+
+## Instalación en la nube
+
+### 1. Crear el repositorio en GitHub
+
+Suba a un repositorio todos los archivos de esta carpeta, excepto:
+
+`.streamlit/secrets.toml`
+
+Ese archivo está incluido en `.gitignore` para evitar subir claves privadas.
+
+### 2. Crear la base de datos Supabase
+
+Cree un proyecto en Supabase y ejecute el contenido de:
+
+`supabase_setup.sql`
+
+en el SQL Editor del proyecto.
+
+### 3. Obtener credenciales
+
+Necesita:
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY` (service role, solo del lado servidor)
+- una clave propia para `APP_PASSWORD`
+
+### 4. Publicar la aplicación
+
+Conecte el repositorio GitHub a un hosting compatible con Streamlit.
+El archivo de entrada es:
+
+`app.py`
+
+En los secretos del hosting configure:
+
+```toml
+SUPABASE_URL = "..."
+SUPABASE_KEY = "..."
+APP_PASSWORD = "..."
 ```
 
-## Desplegar en Vercel
+### 5. Abrir en celular
 
-- Framework: Next.js
-- Build command: `npm run build`
-- Output: automático de Next.js
+Abra la URL publicada desde Chrome/Safari. Puede agregarla a la pantalla de inicio del teléfono
+para acceder como si fuera una aplicación.
 
-## Firebase opcional
+## Uso
 
-Si no configuras Firebase, la aplicación funciona en modo local con `localStorage`. Para nube, crea estas variables en Vercel:
+La aplicación tiene solo cuatro pantallas:
 
-```
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-```
+1. **Nueva valoración** – registro móvil.
+2. **Registros** – consulta de datos guardados en la nube.
+3. **Editar registro** – modificar datos ya guardados.
+4. **Campos** – cambiar el formulario sin tocar la base de datos.
 
-Colección usada: `evaluaciones_seniorfit`.
+## Baremos
 
-## Notas
+Se conservan los archivos:
 
-Esta versión es una base operable. Los rangos SFT incluidos son referenciales iniciales y deben ser ajustados con las tablas oficiales definitivas que adopte el Observatorio.
+- `data/baremos_normal.csv`
+- `data/criterios_mantenimiento.csv`
+
+La aplicación interpreta automáticamente los campos SFT cuyas claves técnicas son conocidas.
+
+## Seguridad
+
+Esta versión usa una clave de acceso simple a la aplicación para reducir complejidad. Para una
+implementación institucional con datos sensibles debe evaluarse autenticación individual,
+roles, políticas de acceso de Supabase y lineamientos de protección de datos del INDER.
+
+**Nunca suba `SUPABASE_KEY` a GitHub.**
